@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from 'discord.js';
-import { setupBeforeProjectSchedule, setupDuringProjectSchedule } from './messages/botSchedule';
+import { setupBeforeProjectSchedule } from './messages/botSchedule';
 
 type Token = string | undefined;
 
