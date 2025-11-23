@@ -1,0 +1,31 @@
+export const ROLE_MENTION = '<@1440856773568364656>';
+
+export const DAILY_MORNING_MESSAGE = `
+# 🌞 Morning Brief
+${ROLE_MENTION}
+
+궁금한 부분이나 이슈 있으시면 이야기해주세요!
+오늘도 화이팅!
+`;
+
+export const DAILY_NIGHT_MESSAGE = `
+# 🌙 Daily Wrap-up
+${ROLE_MENTION}
+
+오늘도 너무 수고 많으셨고, 내일 뵐게요!
+`;
+
+export const WEEKLY_NIGHT_MESSAGE = `
+# 🎉 Weekly Wrap-up
+${ROLE_MENTION}
+
+이번 주도 너무 수고 많으셨어요!
+주말 잘 보내시고 다음 주에 뵐게요!
+`;
+
+export const MANAGEMENT_MESSAGE = `
+# ❗️ 진행 상황 공유 알림봇
+${ROLE_MENTION}
+
+현재 진행중인 내용을 스레드로 공유해주세요! 
+`;
