@@ -15,7 +15,7 @@ Discord 서버에서 자동으로 메시지를 전송하는 봇입니다. 프로
 
 ## 기술 스택
 
-- **TypeScript**: 타입 안정성을 위한 언어
+- **TypeScript**
 - **Discord.js v14**: Discord API 클라이언트
 - **node-cron**: 스케줄링을 위한 크론 작업
 - **dotenv**: 환경 변수 관리
