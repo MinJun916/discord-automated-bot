@@ -54,21 +54,21 @@ const rest = new REST({ version: '10' }).setToken(botToken);
 const registerCommands = async () => {
   try {
     await rest.put(Routes.applicationGuildCommands(clientId, serverId), { body: commands });
-    console.log('명령어가 성공적으로 등록되었습니다.');
+    console.log('[명령어] 등록 완료');
   } catch (error) {
     if (error instanceof DiscordAPIError) {
-      console.error(`Discord API 에러 발생: ${error.message}`);
-      console.error(`에러 코드: ${error.code}`);
-      console.error(`HTTP 상태: ${error.status}`);
+      console.error(
+        `[에러] Discord API: ${error.message} (코드: ${error.code}, 상태: ${error.status})`,
+      );
     } else {
-      console.error('명령어 등록 중 에러 발생:', error);
+      console.error('[에러] 명령어 등록 실패:', error);
     }
     throw error;
   }
 };
 
 client.once('clientReady', async () => {
-  console.log(`Logged in as ${client.user?.tag}`);
+  console.log(`[봇] 로그인 완료: ${client.user?.tag}`);
 
   try {
     await registerCommands();
@@ -76,37 +76,40 @@ client.once('clientReady', async () => {
     switch (projectPhase) {
       case 'before':
         setupBeforeProjectSchedule(client, targetChannelId);
-        console.log('프로젝트 기간 전 스케줄 활성화 완료');
         break;
       case 'soft':
         setupSoftManagementSchedule(client, targetChannelId);
-        console.log('프로젝트 기간 중 스케줄 활성화 완료');
         break;
       case 'hard':
         setupHardManagementSchedule(client, targetChannelId);
-        console.log('프로젝트 기간 중 스케줄 활성화 완료');
         break;
       default:
-        console.error('프로젝트 단계가 설정되지 않았습니다.');
+        console.error('[에러] 프로젝트 단계가 설정되지 않았습니다.');
         break;
     }
   } catch (error) {
-    console.error('봇 초기화 중 에러 발생:', error);
+    console.error('[에러] 봇 초기화 중 에러 발생:', error);
   }
 });
 
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
+  const userTag = interaction.user.tag;
+  const commandName = interaction.commandName;
+
   try {
     if (interaction.commandName === 'ping') {
+      console.log(`[명령어] /ping 실행 - 사용자: ${userTag}`);
       await interaction.reply('봇 생존 테스트 완료');
+      console.log(`[명령어] /ping 완료 - 사용자: ${userTag}`);
     }
 
     if (interaction.commandName === 'mode') {
       const mode = interaction.options.getString('type') as 'before' | 'soft' | 'hard';
 
       if (!mode || !['before', 'soft', 'hard'].includes(mode)) {
+        console.log(`[명령어] /mode 실행 실패 - 사용자: ${userTag}, 이유: 잘못된 모드`);
         await interaction.reply({
           content: '❌ 잘못된 모드입니다. before, soft, hard 중 하나를 선택해주세요.',
           flags: MessageFlags.Ephemeral,
@@ -114,6 +117,7 @@ client.on('interactionCreate', async (interaction) => {
         return;
       }
 
+      console.log(`[명령어] /mode 실행 - 사용자: ${userTag}, 모드: ${mode}`);
       switchProjectMode(client, targetChannelId, mode);
 
       const modeNames = {
@@ -126,11 +130,13 @@ client.on('interactionCreate', async (interaction) => {
         content: `✅ 모드가 **${modeNames[mode]}**(으)로 전환되었습니다.`,
         flags: MessageFlags.Ephemeral,
       });
+      console.log(`[명령어] /mode 완료 - 사용자: ${userTag}, 모드: ${mode}`);
     }
   } catch (error) {
     if (error instanceof DiscordAPIError) {
-      console.error(`Discord API 에러 발생: ${error.message}`);
-      console.error(`에러 코드: ${error.code}, HTTP 상태: ${error.status}`);
+      console.error(
+        `[에러] Discord API: ${error.message} (코드: ${error.code}, 상태: ${error.status}) - 명령어: /${commandName}, 사용자: ${userTag}`,
+      );
 
       if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
         try {
@@ -139,21 +145,25 @@ client.on('interactionCreate', async (interaction) => {
             flags: MessageFlags.Ephemeral,
           });
         } catch (replyError) {
-          console.error('에러 응답 전송 실패:', replyError);
+          console.error('[에러] 에러 응답 전송 실패:', replyError);
         }
       }
     } else {
-      console.error('인터랙션 처리 중 예상치 못한 에러:', error);
+      console.error(
+        `[에러] 인터랙션 처리 실패 - 명령어: /${commandName}, 사용자: ${userTag}:`,
+        error,
+      );
     }
   }
 });
 
 client.login(botToken).catch((error) => {
   if (error instanceof DiscordAPIError) {
-    console.error(`Discord 로그인 실패: ${error.message}`);
-    console.error(`에러 코드: ${error.code}, HTTP 상태: ${error.status}`);
+    console.error(
+      `[에러] Discord 로그인 실패: ${error.message} (코드: ${error.code}, 상태: ${error.status})`,
+    );
   } else {
-    console.error('봇 로그인 중 예상치 못한 에러:', error);
+    console.error('[에러] 봇 로그인 실패:', error);
   }
   process.exit(1);
 });

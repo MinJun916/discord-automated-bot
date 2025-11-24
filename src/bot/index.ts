@@ -33,7 +33,7 @@ export const setupBeforeProjectSchedule = (client: Client, targetChannelId: stri
     scheduleMessage(client, targetChannelId, weeklyNight, WEEKLY_NIGHT_MESSAGE),
   );
 
-  console.log('프로젝트 기간 전 스케줄 활성화 완료');
+  console.log('[스케줄] 프로젝트 기간 전 모드 활성화 (3개 스케줄)');
 };
 
 export const setupSoftManagementSchedule = (client: Client, targetChannelId: string) => {
@@ -50,7 +50,7 @@ export const setupSoftManagementSchedule = (client: Client, targetChannelId: str
     scheduleMessage(client, targetChannelId, dailySoftManagement, MANAGEMENT_MESSAGE),
   );
 
-  console.log('프로젝트 기간 중 스케줄 활성화 완료 (Soft)');
+  console.log('[스케줄] Soft 관리 모드 활성화 (4개 스케줄)');
 };
 
 export const setupHardManagementSchedule = (client: Client, targetChannelId: string) => {
@@ -67,7 +67,7 @@ export const setupHardManagementSchedule = (client: Client, targetChannelId: str
     scheduleMessage(client, targetChannelId, dailyHardManagement, MANAGEMENT_MESSAGE),
   );
 
-  console.log('프로젝트 기간 중 스케줄 활성화 완료 (Hard)');
+  console.log('[스케줄] Hard 관리 모드 활성화 (4개 스케줄)');
 };
 
 export const switchProjectMode = (
