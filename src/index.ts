@@ -6,6 +6,7 @@ import {
   Routes,
   SlashCommandBuilder,
   DiscordAPIError,
+  MessageFlags,
 } from 'discord.js';
 import {
   setupBeforeProjectSchedule,
@@ -108,7 +109,7 @@ client.on('interactionCreate', async (interaction) => {
       if (!mode || !['before', 'soft', 'hard'].includes(mode)) {
         await interaction.reply({
           content: '❌ 잘못된 모드입니다. before, soft, hard 중 하나를 선택해주세요.',
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
@@ -122,8 +123,8 @@ client.on('interactionCreate', async (interaction) => {
       };
 
       await interaction.reply({
-        content: `✅ 모드가 **${modeNames[mode]}**로 전환되었습니다.`,
-        ephemeral: true,
+        content: `✅ 모드가 **${modeNames[mode]}**(으)로 전환되었습니다.`,
+        flags: MessageFlags.Ephemeral,
       });
     }
   } catch (error) {
@@ -135,7 +136,7 @@ client.on('interactionCreate', async (interaction) => {
         try {
           await interaction.reply({
             content: '❌ 명령어 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           });
         } catch (replyError) {
           console.error('에러 응답 전송 실패:', replyError);
