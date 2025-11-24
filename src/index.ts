@@ -14,6 +14,7 @@ import {
   setupHardManagementSchedule,
   switchProjectMode,
 } from './bot';
+import { TEST_MESSAGE } from './bot/botMessages';
 
 type Token = string | undefined;
 
@@ -33,6 +34,7 @@ const client = new Client({
 
 const commands = [
   new SlashCommandBuilder().setName('ping').setDescription('봇 생존 테스트'),
+  new SlashCommandBuilder().setName('test').setDescription('테스트 메시지 출력'),
   new SlashCommandBuilder()
     .setName('mode')
     .setDescription('프로젝트 모드 전환')
@@ -103,6 +105,12 @@ client.on('interactionCreate', async (interaction) => {
       console.log(`[명령어] /ping 실행 - 사용자: ${userTag}`);
       await interaction.reply('봇 생존 테스트 완료');
       console.log(`[명령어] /ping 완료 - 사용자: ${userTag}`);
+    }
+
+    if (interaction.commandName === 'test') {
+      console.log(`[명령어] /test 실행 - 사용자: ${userTag}`);
+      await interaction.reply(TEST_MESSAGE);
+      console.log(`[명령어] /test 완료 - 사용자: ${userTag}`);
     }
 
     if (interaction.commandName === 'mode') {
