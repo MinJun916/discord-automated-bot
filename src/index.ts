@@ -14,7 +14,7 @@ import {
   setupHardManagementSchedule,
   switchProjectMode,
 } from './bot';
-import { TEST_MESSAGE } from './bot/botMessages';
+import { TEST_MESSAGE, createReminderMessage, createMeetingMessage } from './bot/botMessages';
 
 type Token = string | undefined;
 
@@ -48,6 +48,27 @@ const commands = [
           { name: 'soft', value: 'soft' },
           { name: 'hard', value: 'hard' },
         ),
+    ),
+  new SlashCommandBuilder()
+    .setName('reminder')
+    .setDescription('리마인더 메시지를 전송합니다')
+    .addStringOption((option) =>
+      option.setName('time').setDescription('시간 (예: 15:00, 오후 3시)').setRequired(true),
+    )
+    .addStringOption((option) =>
+      option.setName('message').setDescription('리마인더 메시지').setRequired(true),
+    ),
+  new SlashCommandBuilder()
+    .setName('meeting')
+    .setDescription('회의 일정 알림 메시지를 전송합니다')
+    .addStringOption((option) =>
+      option.setName('time').setDescription('회의 시간 (예: 15:00, 오후 3시)').setRequired(true),
+    )
+    .addStringOption((option) =>
+      option.setName('title').setDescription('회의 제목').setRequired(true),
+    )
+    .addStringOption((option) =>
+      option.setName('description').setDescription('회의 설명 (선택사항)').setRequired(false),
     ),
 ].map((command) => command.toJSON());
 
@@ -139,6 +160,91 @@ client.on('interactionCreate', async (interaction) => {
         flags: MessageFlags.Ephemeral,
       });
       console.log(`[명령어] /mode 완료 - 사용자: ${userTag}, 모드: ${mode}`);
+    }
+
+    if (interaction.commandName === 'reminder') {
+      const time = interaction.options.getString('time');
+      const message = interaction.options.getString('message');
+
+      if (!time || !message) {
+        console.log(`[명령어] /reminder 실행 실패 - 사용자: ${userTag}, 이유: 필수 옵션 누락`);
+        await interaction.reply({
+          content: '❌ 시간과 메시지를 모두 입력해주세요.',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      console.log(`[명령어] /reminder 실행 - 사용자: ${userTag}, 시간: ${time}`);
+
+      try {
+        const reminderMessage = createReminderMessage(time, message);
+
+        if (
+          interaction.channel &&
+          interaction.channel.isTextBased() &&
+          'send' in interaction.channel
+        ) {
+          await interaction.channel.send(reminderMessage);
+        }
+
+        await interaction.reply({
+          content: '✅ 리마인더 메시지가 전송되었습니다.',
+          flags: MessageFlags.Ephemeral,
+        });
+        console.log(`[명령어] /reminder 완료 - 사용자: ${userTag}`);
+      } catch (error) {
+        console.error(`[에러] /reminder 메시지 전송 실패 - 사용자: ${userTag}:`, error);
+        await interaction.reply({
+          content: '❌ 메시지 전송 중 오류가 발생했습니다.',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+    }
+
+    if (interaction.commandName === 'meeting') {
+      const time = interaction.options.getString('time');
+      const title = interaction.options.getString('title');
+      const description = interaction.options.getString('description');
+
+      if (!time || !title) {
+        console.log(`[명령어] /meeting 실행 실패 - 사용자: ${userTag}, 이유: 필수 옵션 누락`);
+        await interaction.reply({
+          content: '❌ 시간과 제목을 모두 입력해주세요.',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      console.log(`[명령어] /meeting 실행 - 사용자: ${userTag}, 시간: ${time}, 제목: ${title}`);
+
+      try {
+        const meetingMessage = createMeetingMessage({
+          time,
+          title,
+          description: description || undefined,
+        });
+
+        if (
+          interaction.channel &&
+          interaction.channel.isTextBased() &&
+          'send' in interaction.channel
+        ) {
+          await interaction.channel.send(meetingMessage);
+        }
+
+        await interaction.reply({
+          content: '✅ 회의 일정 알림 메시지가 전송되었습니다.',
+          flags: MessageFlags.Ephemeral,
+        });
+        console.log(`[명령어] /meeting 완료 - 사용자: ${userTag}`);
+      } catch (error) {
+        console.error(`[에러] /meeting 메시지 전송 실패 - 사용자: ${userTag}:`, error);
+        await interaction.reply({
+          content: '❌ 메시지 전송 중 오류가 발생했습니다.',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
     }
   } catch (error) {
     if (error instanceof DiscordAPIError) {
