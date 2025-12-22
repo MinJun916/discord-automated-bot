@@ -14,7 +14,7 @@ import {
   setupHardManagementSchedule,
   switchProjectMode,
 } from './bot';
-import { TEST_MESSAGE, createReminderMessage, createMeetingMessage } from './bot/botMessages';
+import { TEST_MESSAGE, createReminderMessage, createMeetingMessage, createDeployMessage } from './bot/botMessages';
 
 type Token = string | undefined;
 
@@ -69,6 +69,19 @@ const commands = [
     )
     .addStringOption((option) =>
       option.setName('description').setDescription('회의 설명 (선택사항)').setRequired(false),
+    ),
+  new SlashCommandBuilder()
+    .setName('deploy')
+    .setDescription('배포 완료 알림 메시지를 전송합니다')
+    .addStringOption((option) =>
+      option
+        .setName('type')
+        .setDescription('배포 타입 선택')
+        .setRequired(true)
+        .addChoices(
+          { name: 'BE (Backend)', value: 'BE' },
+          { name: 'FE (Frontend)', value: 'FE' },
+        ),
     ),
 ].map((command) => command.toJSON());
 
@@ -242,6 +255,51 @@ client.on('interactionCreate', async (interaction) => {
         console.error(`[에러] /meeting 메시지 전송 실패 - 사용자: ${userTag}:`, error);
         await interaction.reply({
           content: '❌ 메시지 전송 중 오류가 발생했습니다.',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+    }
+
+    if (interaction.commandName === 'deploy') {
+      const type = interaction.options.getString('type') as 'BE' | 'FE';
+      const deployChannelId = '1442798960178892870';
+
+      if (!type || !['BE', 'FE'].includes(type)) {
+        console.log(`[명령어] /deploy 실행 실패 - 사용자: ${userTag}, 이유: 잘못된 타입`);
+        await interaction.reply({
+          content: '❌ 배포 타입을 선택해주세요. (BE 또는 FE)',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      console.log(`[명령어] /deploy 실행 - 사용자: ${userTag}, 타입: ${type}`);
+
+      try {
+        const deployMessage = createDeployMessage(type);
+        const channel = await client.channels.fetch(deployChannelId);
+
+        if (!channel || !channel.isTextBased() || !('send' in channel)) {
+          console.warn(`[경고] 채널을 찾을 수 없거나 텍스트 채널이 아닙니다: ${deployChannelId}`);
+          await interaction.reply({
+            content: '❌ 배포 알림 채널을 찾을 수 없습니다.',
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+
+        await channel.send(deployMessage);
+        console.log(`[메시지] 배포 알림 전송 완료 - 채널: ${channel.id}, 타입: ${type}`);
+
+        await interaction.reply({
+          content: `✅ ${type} 서버 배포 알림이 전송되었습니다.`,
+          flags: MessageFlags.Ephemeral,
+        });
+        console.log(`[명령어] /deploy 완료 - 사용자: ${userTag}, 타입: ${type}`);
+      } catch (error) {
+        console.error(`[에러] /deploy 메시지 전송 실패 - 사용자: ${userTag}:`, error);
+        await interaction.reply({
+          content: '❌ 배포 알림 전송 중 오류가 발생했습니다.',
           flags: MessageFlags.Ephemeral,
         });
       }
